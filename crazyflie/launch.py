@@ -36,6 +36,7 @@ from multicopter_server import MulticopterServer
 from mixers import PhantomMixer, IngenuityMixer
 from debugging import debug
 
+from pid_controller import pid_velocity_fixed_height_controller
 
 class LaunchCopter(MulticopterServer):
 
