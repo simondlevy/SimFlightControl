@@ -22,15 +22,10 @@
 
 '''
 
-try:
-    import cv2
-except Exception:
-    pass
-
 import numpy as np
 
 from multicopter_server import MulticopterServer
-from debugging import debug
+# from debugging import debug
 
 from pid_controller import pid_velocity_fixed_height_controller
 
@@ -50,37 +45,46 @@ class LaunchCopter(MulticopterServer):
 
     def getMotors(self, t, state, stickDemands):
 
-        # debug('%3.3f' % stickDemands[0])
-
+        '''
         if stickDemands[0] < 0.25:
             self.target -= self.THROTTLE_INCREMENT
 
         if stickDemands[0] > 0.75:
             self.target += self.THROTTLE_INCREMENT
+        '''
+
+        self.target += self._increment(
+               stickDemands[0], 0.25, 0.75, self.THROTTLE_INCREMENT)
 
         motors = np.zeros(4)
 
         if self.time > 0:
 
             motors = np.array(self.pid_controller.pid(
-                    t - self.time, # dt
-                    0, # desired_vx
-                    0, # desired_vy
-                    0, # desired_yaw_rate
-                    self.target, # desired_altitude
-                    0, # actual_roll
-                    0, # actual_pitch
-                    0, # actual_yaw_rate
-                    state[MulticopterServer.STATE_Z], # actual_altitude
-                    0, # actual_vx
-                    0) # actual_vy
+                    t - self.time,  # dt
+                    0,  # desired_vx
+                    0,  # desired_vy
+                    0,  # desired_yaw_rate
+                    self.target,  # desired_altitude
+                    0,  # actual_roll
+                    0,  # actual_pitch
+                    0,  # actual_yaw_ratev
+                    state[MulticopterServer.STATE_Z],  # actual_altitude
+                    0,  # actual_vx
+                    0)  # actual_vy
                     ) / 100
 
         # Track current time to share it with handleImage()
         self.time = t
 
         # Return motor values
-        return motors 
+        return motors
+
+    def _increment(self, stick, lo_limit, hi_limit, increment):
+
+        return (-increment if stick < lo_limit
+                else +increment if stick > hi_limit
+                else 0)
 
 
 def main():
