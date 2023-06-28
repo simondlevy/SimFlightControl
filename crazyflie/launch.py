@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
 
-  Simple take-off-and-move-forward script
+  Flight controller for Crazyflie simulation
 
   Copyright (C) 2021 Simon D. Levy
 
@@ -25,7 +25,7 @@
 import numpy as np
 
 from multicopter_server import MulticopterServer
-# from debugging import debug
+from debugging import debug
 
 from pid_controller import pid_velocity_fixed_height_controller
 
@@ -34,27 +34,27 @@ class LaunchCopter(MulticopterServer):
 
     THROTTLE_INCREMENT = 1e-4
 
-    def __init__(self, initial_target=1.0):
+    def __init__(self, initial_altitude_target=1.0):
 
         MulticopterServer.__init__(self)
 
         self.time = 0
-        self.target = initial_target
+
+        self.desired_altitude = initial_altitude_target
+        self.desired_yaw_rate = 0
 
         self.pid_controller = pid_velocity_fixed_height_controller()
 
     def getMotors(self, t, state, stickDemands):
 
-        '''
-        if stickDemands[0] < 0.25:
-            self.target -= self.THROTTLE_INCREMENT
+        self.desired_altitude += (
+                -self.THROTTLE_INCREMENT if stickDemands[0] < 0.25
+                else +self.THROTTLE_INCREMENT if stickDemands[0] > 0.75
+                else 0)
 
-        if stickDemands[0] > 0.75:
-            self.target += self.THROTTLE_INCREMENT
-        '''
+        self.desired_yaw_rate = 10 * stickDemands[3]
 
-        self.target += self._increment(
-               stickDemands[0], 0.25, 0.75, self.THROTTLE_INCREMENT)
+        actual_yaw_rate = 10 * np.radians(state[MulticopterServer.STATE_DPSI])
 
         motors = np.zeros(4)
 
@@ -64,11 +64,11 @@ class LaunchCopter(MulticopterServer):
                     t - self.time,  # dt
                     0,  # desired_vx
                     0,  # desired_vy
-                    0,  # desired_yaw_rate
-                    self.target,  # desired_altitude
+                    self.desired_yaw_rate,
+                    self.desired_altitude,
                     0,  # actual_roll
                     0,  # actual_pitch
-                    0,  # actual_yaw_ratev
+                    actual_yaw_rate, 
                     state[MulticopterServer.STATE_Z],  # actual_altitude
                     0,  # actual_vx
                     0)  # actual_vy
@@ -79,13 +79,6 @@ class LaunchCopter(MulticopterServer):
 
         # Return motor values
         return motors
-
-    def _increment(self, stick, lo_limit, hi_limit, increment):
-
-        return (-increment if stick < lo_limit
-                else +increment if stick > hi_limit
-                else 0)
-
 
 def main():
 
