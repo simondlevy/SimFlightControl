@@ -34,7 +34,6 @@ from mixers import PhantomMixer
 from debugging import debug
 
 from pid_controller import pid_velocity_fixed_height_controller
-from controller import LaunchController
 
 
 class LaunchCopter(MulticopterServer):
@@ -48,20 +47,15 @@ class LaunchCopter(MulticopterServer):
         self.time = 0
         self.target = initial_target
 
-        # Create PID controller
-        self.ctrl = LaunchController(kp)
-
         self.crazyflie_pid = pid_velocity_fixed_height_controller()
 
     def getMotors(self, t, state, _stickDemands):
 
-        # Extract altitude and its first derivative from state.
-        z = state[MulticopterServer.STATE_Z]
-        dzdt = state[MulticopterServer.STATE_DZ]
+        motors = np.zeros(4)
 
         if self.time > 0:
 
-            motors = self.crazyflie_pid.pid(
+            motors = np.array(self.crazyflie_pid.pid(
                     t - self.time, # dt
                     0, # desired_vx
                     0, # desired_vy
@@ -70,28 +64,16 @@ class LaunchCopter(MulticopterServer):
                     0, # actual_roll
                     0, # actual_pitch
                     0, # actual_yaw_rate
-                    z, # actual_altitude
+                    state[MulticopterServer.STATE_Z], # actual_altitude
                     0, # actual_vx
                     0) # actual_vy
-
-            debug(motors)
+                    ) / 100
 
         # Track current time to share it with handleImage()
         self.time = t
 
-        # Get demands U [throttle, roll, pitch, yaw] from PID controller,
-        # ignoring stick demands
-        u = self.ctrl.getDemands(self.target, z, dzdt)
-
-        # Use mixer to convert demands U into motor values Omega
-        omega = self.mixer.getMotors(u)
-
-        # Constrain motor values to [0,1]
-        omega[omega > 1] = 1
-        omega[omega < 0] = 0
-
         # Return motor values
-        return omega
+        return motors 
 
 
 def main():
