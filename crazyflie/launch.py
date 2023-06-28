@@ -37,6 +37,8 @@ from pid_controller import pid_velocity_fixed_height_controller
 
 class LaunchCopter(MulticopterServer):
 
+    THROTTLE_INCREMENT = 1e-4
+
     def __init__(self, initial_target=1.0):
 
         MulticopterServer.__init__(self)
@@ -46,7 +48,15 @@ class LaunchCopter(MulticopterServer):
 
         self.pid_controller = pid_velocity_fixed_height_controller()
 
-    def getMotors(self, t, state, _stickDemands):
+    def getMotors(self, t, state, stickDemands):
+
+        # debug('%3.3f' % stickDemands[0])
+
+        if stickDemands[0] < 0.25:
+            self.target -= self.THROTTLE_INCREMENT
+
+        if stickDemands[0] > 0.75:
+            self.target += self.THROTTLE_INCREMENT
 
         motors = np.zeros(4)
 
