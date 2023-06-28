@@ -28,27 +28,22 @@ except Exception:
     pass
 
 import numpy as np
-import argparse
-from argparse import ArgumentDefaultsHelpFormatter
 
-from controller import LaunchController
 from multicopter_server import MulticopterServer
-from mixers import PhantomMixer, IngenuityMixer
+from mixers import PhantomMixer
 from debugging import debug
 
-from pid_controller import pid_velocity_fixed_height_controller
+# from pid_controller import pid_velocity_fixed_height_controller
+from controller import LaunchController
+
 
 class LaunchCopter(MulticopterServer):
 
-    def __init__(
-            self,
-            mixer,
-            kp=1.0,
-            initial_target=2.5):
+    def __init__(self, kp=1.0, initial_target=2.5):
 
         MulticopterServer.__init__(self)
 
-        self.mixer = mixer
+        self.mixer = PhantomMixer()
 
         self.time = 0
         self.target = initial_target
@@ -78,7 +73,7 @@ class LaunchCopter(MulticopterServer):
         # Track current time to share it with handleImage()
         self.time = t
 
-        # Extract altitude and its first derivative from state.  
+        # Extract altitude and its first derivative from state.
         z = state[MulticopterServer.STATE_Z]
         dzdt = state[MulticopterServer.STATE_DZ]
 
@@ -99,22 +94,8 @@ class LaunchCopter(MulticopterServer):
 
 def main():
 
-    parser = argparse.ArgumentParser(
-            formatter_class=ArgumentDefaultsHelpFormatter)
-
-    parser.add_argument('--vehicle', required=False, default='Phantom',
-                        help='Vehicle name')
-
-    args = parser.parse_args()
-
-    d = {'Phantom': PhantomMixer, 'Ingenuity': IngenuityMixer}
-
-    if args.vehicle in d:
-        copter = LaunchCopter(d[args.vehicle]())
-        copter.start()
-
-    else:
-        debug('Unrecognized vehicle: %s' % args.vehicle)
+    copter = LaunchCopter()
+    copter.start()
 
 
 main()
