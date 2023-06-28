@@ -30,7 +30,6 @@ except Exception:
 import numpy as np
 
 from multicopter_server import MulticopterServer
-from mixers import PhantomMixer
 from debugging import debug
 
 from pid_controller import pid_velocity_fixed_height_controller
@@ -42,12 +41,10 @@ class LaunchCopter(MulticopterServer):
 
         MulticopterServer.__init__(self)
 
-        self.mixer = PhantomMixer()
-
         self.time = 0
         self.target = initial_target
 
-        self.crazyflie_pid = pid_velocity_fixed_height_controller()
+        self.pid_controller = pid_velocity_fixed_height_controller()
 
     def getMotors(self, t, state, _stickDemands):
 
@@ -55,7 +52,7 @@ class LaunchCopter(MulticopterServer):
 
         if self.time > 0:
 
-            motors = np.array(self.crazyflie_pid.pid(
+            motors = np.array(self.pid_controller.pid(
                     t - self.time, # dt
                     0, # desired_vx
                     0, # desired_vy
