@@ -33,7 +33,7 @@ from multicopter_server import MulticopterServer
 from mixers import PhantomMixer
 from debugging import debug
 
-# from pid_controller import pid_velocity_fixed_height_controller
+from pid_controller import pid_velocity_fixed_height_controller
 from controller import LaunchController
 
 
@@ -51,31 +51,33 @@ class LaunchCopter(MulticopterServer):
         # Create PID controller
         self.ctrl = LaunchController(kp)
 
-    def handleImage(self, image):
-        try:
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            edges = cv2.Canny(gray, 100, 200)
-            cv2.imshow('Edge Detection', edges)
-            cv2.waitKey(1)
-
-            nonzero = np.nonzero(edges)[0]
-
-            # Ignore image for first five seconds
-            if len(nonzero) > 0 and np.mean(nonzero) > 390 and self.time > 5:
-                self.target = 30
-
-        except Exception:
-            debug('Failed')
-            pass
+        self.crazyflie_pid = pid_velocity_fixed_height_controller()
 
     def getMotors(self, t, state, _stickDemands):
-
-        # Track current time to share it with handleImage()
-        self.time = t
 
         # Extract altitude and its first derivative from state.
         z = state[MulticopterServer.STATE_Z]
         dzdt = state[MulticopterServer.STATE_DZ]
+
+        if self.time > 0:
+
+            motors = self.crazyflie_pid.pid(
+                    t - self.time, # dt
+                    0, # desired_vx
+                    0, # desired_vy
+                    0, # desired_yaw_rate
+                    self.target, # desired_altitude
+                    0, # actual_roll
+                    0, # actual_pitch
+                    0, # actual_yaw_rate
+                    z, # actual_altitude
+                    0, # actual_vx
+                    0) # actual_vy
+
+            debug(motors)
+
+        # Track current time to share it with handleImage()
+        self.time = t
 
         # Get demands U [throttle, roll, pitch, yaw] from PID controller,
         # ignoring stick demands
