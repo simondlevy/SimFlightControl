@@ -37,7 +37,7 @@ from pid_controller import pid_velocity_fixed_height_controller
 
 class LaunchCopter(MulticopterServer):
 
-    def __init__(self, kp=1.0, initial_target=2.5):
+    def __init__(self, initial_target=1.0):
 
         MulticopterServer.__init__(self)
 
