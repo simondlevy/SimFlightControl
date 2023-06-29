@@ -26,8 +26,6 @@ HF_DIR = $(ARDUINO_DIR)/Hackflight
 
 HF_SRC = $(HF_DIR)/src/
 
-ETL_SRC = $(ARDUINO_DIR)/etl-arduino/src/
-
 ALL = hackflight
 
 all: $(ALL)
@@ -44,7 +42,7 @@ hackflight.o: hackflight.cpp \
 	$(HF_SRC)/core/*/*.h \
 	$(HF_SRC)/core/mixers/*.h \
 	$(HF_SRC)/core/mixers/fixedpitch/*.h
-	g++ $(CFLAGS) -I$(HF_SRC) -I$(ETL_SRC) -c hackflight.cpp
+	g++ $(CFLAGS) -I$(HF_SRC) -Isockets -c hackflight.cpp
 
 run: hackflight
 	./hackflight

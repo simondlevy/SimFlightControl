@@ -87,8 +87,6 @@ class pid_velocity_fixed_height_controller():
 
         yawcap = 10
 
-        print('%+3.3f' % yaw_rate_error)
-
         roll_command = (gains["kp_att_rp"] * np.clip(roll_error, -1, 1) + 
                 gains["kd_att_rp"] * roll_deriv)
 

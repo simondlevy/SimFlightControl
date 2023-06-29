@@ -30,8 +30,8 @@
 #include <core/pids/setpoints/althold.h>
 #include <core/mixers/fixedpitch/quadxbf.h>
 
-#include "../../Simulator/Source/MultiSim/sockets/UdpClientSocket.hpp"
-#include "../../Simulator/Source/MultiSim/sockets/UdpServerSocket.hpp"
+#include <UdpClientSocket.hpp>
+#include <UdpServerSocket.hpp>
 
 // Comms
 static const char * HOST = "127.0.0.1"; // localhost
