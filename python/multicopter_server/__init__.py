@@ -55,6 +55,7 @@ class MulticopterServer(object):
 
     def __init__(
             self,
+            dt=0,
             host='127.0.0.1',
             motor_port=5000,
             telemetry_port=5001,
@@ -62,6 +63,8 @@ class MulticopterServer(object):
             image_rows=480,
             image_cols=640):
 
+        # Constants
+        self.dt = dt
         self.host = host
         self.motor_port = motor_port
         self.telemetry_port = telemetry_port
@@ -69,8 +72,11 @@ class MulticopterServer(object):
         self.image_rows = image_rows
         self.image_cols = image_cols
 
+        # State variables
+        self.tprev = 0
         self.image = None
         self.done = False
+        self.motorvals = np.zeros(4)
 
     def start(self):
 
@@ -131,12 +137,12 @@ class MulticopterServer(object):
         except Exception:
             pass
 
-    def getMotors(self, time, state, demands):
+    def getMotors(self, dt, state, demands):
         '''
         Override for your application.  Should return motor values in interval
         [0,1].  This default implementation just keeps flying upward.
         '''
-        return np.array([0.6, 0.6, 0.6, 0.6])
+        return 0.6 * np.ones(4)
 
     def isDone(self):
 
@@ -162,16 +168,26 @@ class MulticopterServer(object):
                 _debug('Running')
                 running = True
 
-            if telemetry[0] < 0:
+            # Sim sends -1 for time when it quits
+            t = telemetry[0]
+            if t < 0:
                 self.done = True
                 break
 
-            motorvals = self.getMotors(telemetry[0],     # time
-                                       telemetry[1:13],  # vehicle state
-                                       telemetry[16:])   # demands
+            # Update motors values periodically
+            dt = t - self.tprev
 
+            if dt > self.dt:
+
+                self.tprev = t
+
+                self.motorvals = self.getMotors(dt,
+                                           telemetry[1:13],  # vehicle state
+                                           telemetry[16:])   # demands
+
+            # Always send current motor values to avoid starving the sim
             motorClientSocket.sendto(
-                    np.ndarray.tobytes(np.ndarray.astype(motorvals, np.float32)),
+                    np.ndarray.tobytes(np.ndarray.astype(self.motorvals, np.float32)),
                     (self.host, self.motor_port))
 
             sleep(0)  # yield to other thread
