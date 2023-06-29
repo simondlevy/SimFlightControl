@@ -45,9 +45,9 @@ class LaunchCopter(MulticopterServer):
 
     def getMotors(self, t, state, stickDemands):
 
-        desired_vx = 0
+        desired_vx = -stickDemands[2]
 
-        desired_vy = -stickDemands[1] / 2
+        desired_vy = -stickDemands[1]
 
         desired_yaw_rate = 10 * stickDemands[3]
 
@@ -68,7 +68,11 @@ class LaunchCopter(MulticopterServer):
 
         actual_vy = state[MulticopterServer.STATE_DY]
 
-        print('actual_vx=%+3.3f' % actual_vx)
+        print('desired_vy=%+3.3f  actual_vy=%+3.3f' % (
+            desired_vy, actual_vy))
+
+        # desired_vy = 0
+        # actual_vy = 0
 
         motors = np.zeros(4)
 
@@ -79,23 +83,23 @@ class LaunchCopter(MulticopterServer):
             motors = np.array(self.pid_controller.pid(
                     dt,
                     0, # desired_vx,
-                    0, # desired_vy,
+                    desired_vy,
                     desired_yaw_rate,
                     self.desired_altitude,
-                    0, # actual_roll,
+                    actual_roll,
                     0, # actual_pitch,
                     actual_yaw_rate, 
                     actual_altitude,
                     0, # actual_vx,
-                    0) # actual_vy)
+                    actual_vy)
                     ) / 100
 
         # Track current time to share it with handleImage()
         self.time = t
 
         bump = 1e-3
-        motors[2] += bump
-        motors[3] += bump
+        #motors[2] += bump
+        #motors[3] += bump
 
         # Return motor values
         return motors

@@ -110,6 +110,8 @@ int main(int argc, char ** argv)
         // Build vehicle state 
         auto vstate = state_from_telemetry(telemetry);
 
+        printf("%+3.3f\n", vstate.dx);
+
         // Build stick demands
         auto demands = demands_from_telemetry(telemetry);
 
@@ -127,6 +129,8 @@ int main(int argc, char ** argv)
         motorClient.sendData(mvals, sizeof(mvals));
 
     } // while (true)
+
+    printf("\n");
 
     return 0;
 }

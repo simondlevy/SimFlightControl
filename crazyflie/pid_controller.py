@@ -58,6 +58,9 @@ class pid_velocity_fixed_height_controller():
                 "ki_z": 5,
                 "kd_z": 5}
 
+        # gains["kp_vel_xy"] /= div
+        gains["kd_vel_xy"] = 0
+
         # Velocity PID control
         vx_error = desired_vx - actual_vx
         vx_deriv = (vx_error - self.past_vx_error) / dt
