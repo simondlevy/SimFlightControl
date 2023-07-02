@@ -59,10 +59,10 @@ static VehicleState state_from_telemetry(const double telemetry[])
 static Demands demands_from_telemetry(const double telemetry[])
 {
     return Demands(
-            (float)telemetry[16], 
-            (float)telemetry[17],
-            (float)telemetry[18],
-            (float)telemetry[19]
+            (float)telemetry[13], 
+            (float)telemetry[14],
+            (float)telemetry[15],
+            (float)telemetry[16]
             );
 }
 
@@ -95,8 +95,10 @@ int main(int argc, char ** argv)
     while (true) {
 
         // Get incoming telemetry values
-        double telemetry[20] = {};
+        double telemetry[17] = {};
         telemServer.receiveData(telemetry, sizeof(telemetry));
+
+        printf("%3.3f\n", telemetry[0]);
 
         // Sim sends negative time value on halt
         double time = telemetry[0];
@@ -110,8 +112,6 @@ int main(int argc, char ** argv)
         // Build vehicle state 
         auto vstate = state_from_telemetry(telemetry);
 
-        printf("%+3.3f\n", vstate.dx);
-
         // Build stick demands
         auto demands = demands_from_telemetry(telemetry);
 
@@ -124,6 +124,8 @@ int main(int argc, char ** argv)
         // Run final demands through mixer to get motor values
         float mvals[4] = {};
         mixer.getMotors(demands, mvals);
+
+        printf("%3.3f\n", mvals[0]);
 
         // Send back motor values
         motorClient.sendData(mvals, sizeof(mvals));

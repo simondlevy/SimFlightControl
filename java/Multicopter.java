@@ -139,7 +139,7 @@ public class Multicopter {
 
             _motorVals = new double [motorCount];
 
-            _telemetry = new double [20]; // Time : State : Demands : Angular velocities
+            _telemetry = new double [17]; // Time : State : Demands
         }
 
         private int _motorPort;

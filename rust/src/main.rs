@@ -45,7 +45,7 @@ const ALT_HOLD_KI : f32 = 1.5e-1;
 
 fn main() -> std::io::Result<()> {
 
-    const IN_BUF_SIZE:usize  = 20*8; // 20 doubles in
+    const IN_BUF_SIZE:usize  = 17*8; // 17 doubles in
     const OUT_BUF_SIZE:usize = 4*8;  // 4 doubles out
 
     fn read_float(buf:[u8; IN_BUF_SIZE], idx:usize) -> f32 {

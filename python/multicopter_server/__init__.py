@@ -155,7 +155,7 @@ class MulticopterServer(object):
         while True:
 
             try:
-                telemetry_bytes, _ = telemetryServerSocket.recvfrom(8*20)
+                telemetry_bytes, _ = telemetryServerSocket.recvfrom(8*17)
             except Exception:
                 self.done = True
                 break
